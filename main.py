@@ -81,4 +81,15 @@ def generate_gpt3_output(transcript_file,prompt_file):
     with open('output/'+transcript_file.split('/')[-1],'w') as f:
         f.write(result)
     return 'output/'+transcript_file.split('/')[-1]
-    
+
+# get list of files in prompts
+def get_prompt_files():
+    return os.listdir('prompts')
+
+# get list of files in transcript_files
+def get_transcript_files():
+    return os.listdir('transcript_files')
+
+# get list of files in output
+def get_output_files():
+    return os.listdir('output')
