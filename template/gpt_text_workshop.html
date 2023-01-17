@@ -28,7 +28,7 @@
          </td>
       </tr>
       <tr>
-         <td td rowspan="4">
+         <td td rowspan="4" valign="top">
             <center>
                <table>
                      <tr>
@@ -43,8 +43,10 @@
                      </tr>
                   <tr>
                      <td>
+                        <br><br>
                         <form action="./gpt_text_workshop" method="POST">
-                           <label>Step 1 of 3: Select the source text you want to work from</label>
+                           <label>Step 1 of 3 : Select the source text you want to work from</label>
+                           <br><br>
                            <center>
                               <button class="button" type="submit" onclick="showLoader()">Source Text Files</button>
                               <select id="dropdown_transcript_files_id" name="dropdown_transcript_files">
@@ -68,8 +70,10 @@
                   </tr>
                   <tr>
                      <td>
+                        <br><br>
                         <form action="./prompt_files" method="POST">
-                           <label>Step 2 of 3: Select the prompt file you want to use, or upload a new prompt</label>
+                           <label>Step 2 of 3 : Select the prompt file you want to use, or upload a new prompt</label>
+                           <br><br>
                            <center>
                               <button class="button" type="submit" onclick="showLoader()">Prompt Library</button>
                               <select id="dropdown_prompt_files_id" name="dropdown_prompt_files">
@@ -101,8 +105,10 @@
                   </tr>
                   <tr>
                      <td>
+                        <br><br>
                         <form action="./generate_output_text_file" method="POST">
-                           <label>Step 3 of 3: Click the "Generate Output Text File" button below to generate the output text file</label>
+                           <label>Step 3 of 3 : Click the "Generate Output Text File" button below to generate the output text file</label>
+                           <br><br>
                            <center>
                               <input type="text" name="selected_source_text_file_value" id="selected_source_text_file_value_id" style="display:none;">
                               <input type="text" name="selected_prompt_file_value" id="selected_prompt_file_value_id" style="display:none;">
