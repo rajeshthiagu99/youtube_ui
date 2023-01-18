@@ -15,12 +15,12 @@ ssl._create_default_https_context = ssl._create_unverified_context
 app = Flask(__name__,template_folder='template')
 
 # create folders if not exists
-if not os.path.exists('transcript_files'):
-    os.mkdir('transcript_files')
+if not os.path.exists('transcripts'):
+    os.mkdir('transcripts')
 if not os.path.exists('prompts'):
     os.mkdir('prompts')
-if not os.path.exists('output'):
-    os.mkdir('output')
+if not os.path.exists('outputs'):
+    os.mkdir('outputs')
 
 def get_generated_text(prompt,engine='text-davinci-003',temp=0.3,tokens=2000,top_p=1,freq_penalty=0,pres_penalty=0,stop=['asdfasdf','asdasdf']):
     result =False
@@ -61,13 +61,13 @@ def generate_gpt3_output(transcript_file,prompt_file):
     result = '\n\n'.join(output)
 
     # save result in new file in output
-    with open('output/'+transcript_file.split('/')[-1],'w') as f:
+    with open('outputs/'+transcript_file.split('/')[-1],'w') as f:
         f.write(result)
-    return 'output/'+transcript_file.split('/')[-1]
+    return transcript_file.split('/')[-1]
 
 # get list of files in transcript files
 def get_transcript_files():
-    return [file.split('\\')[-1] for file in glob.glob('transcript_files/*.txt')]
+    return [file.split('\\')[-1] for file in glob.glob('transcripts/*.txt')]
 
 # get list of files in prompts files
 def get_prompt_files():
@@ -75,7 +75,7 @@ def get_prompt_files():
 
 # get list of files in output files
 def get_output_files():
-    return [file.split('\\')[-1] for file in glob.glob('output/*.txt')]
+    return [file.split('\\')[-1] for file in glob.glob('outputs/*.txt')]
 
 @app.route('/')
 def index():
@@ -91,7 +91,7 @@ def create_transcript():
         video = yt.streams.filter(only_audio=True).first()
 
         # check for destination to save file
-        destination = 'transcript_files'
+        destination = 'transcripts'
 
         # download the file
         out_file = video.download(output_path=destination)
@@ -124,43 +124,48 @@ def transcript_files():
     if request.method == 'POST':
         global_transcript_files_list = get_transcript_files()
         global_transcript_length_dict['length'] = len(global_transcript_files_list)
-    return render_template('transcript_files.html',length_dict=global_transcript_length_dict,transcript_files_list=global_transcript_files_list,transcript_download_file_status='',transcript_upload_file_status='')
+    return render_template('transcript_files.html',length_dict=global_transcript_length_dict,transcript_files_list=global_transcript_files_list,transcript_download_file='',transcript_upload_file_status='',download_transcript_file_content='')
 
-@app.route('/transcript_upload_download_file',methods=['POST'])
-def transcript_upload_download_file():
+@app.route('/transcript_download_file',methods=['POST'])
+def transcript_download_file():
     global global_transcript_length_dict,global_transcript_files_list
 
     if request.method == 'POST':
         download_file_name = request.form['download_file_name']
-        uploaded_file = request.files['uploaded_file']
         global_transcript_files_list = get_transcript_files()
         global_transcript_length_dict['length'] = len(global_transcript_files_list)
         if len(download_file_name) > 0:
 
             # Open the file
-            with open(f"transcript_files/{download_file_name}", "r") as file:
+            with open(f"transcripts/{download_file_name}", "r") as file:
 
                 # Read the contents of the file
                 contents = file.read()
+            transcript_download_file = download_file_name.upper()
+        else:
+            transcript_download_file = ''
+            contents = ''
+    else:
+        transcript_download_file = ''
+        contents = ''
+    return render_template('transcript_files.html',length_dict=global_transcript_length_dict,transcript_files_list=global_transcript_files_list,transcript_download_file=transcript_download_file,transcript_upload_file_status='',download_transcript_file_content=contents)
 
-            path_to_download_folder = str(os.path.join(Path.home(), "Downloads",download_file_name))
-            with open(path_to_download_folder, "w") as file:
+@app.route('/transcript_upload_file',methods=['POST'])
+def transcript_upload_file():
+    global global_transcript_length_dict,global_transcript_files_list
 
-                # Write to the file
-                file.write(contents)
-            transcript_download_file_status = f'{download_file_name.upper()} file is downloaded successsfully'
-            transcript_upload_file_status = ''
+    if request.method == 'POST':
+        uploaded_file = request.files['uploaded_file']
         if uploaded_file.filename != '':
-            uploaded_file.save(f"transcript_files\{uploaded_file.filename}")
+            uploaded_file.save(f"transcripts\{uploaded_file.filename}")
             global_transcript_files_list = get_transcript_files()
             global_transcript_length_dict['length'] = len(global_transcript_files_list)
-            transcript_download_file_status = ''
-            transcript_upload_file_status = f'{uploaded_file.filename.upper()} file is uploaded successsfully'
+            transcript_upload_file_status = uploaded_file.filename.upper() + ' is uploaded successfully'
+        else:
+            transcript_upload_file_status = ''
     else:
-        transcript_download_file_status = ''
         transcript_upload_file_status = ''
-
-    return render_template('transcript_files.html',length_dict=global_transcript_length_dict,transcript_files_list=global_transcript_files_list,transcript_download_file_status=transcript_download_file_status,transcript_upload_file_status=transcript_upload_file_status)
+    return render_template('transcript_files.html',length_dict=global_transcript_length_dict,transcript_files_list=global_transcript_files_list,transcript_download_file='',transcript_upload_file_status=transcript_upload_file_status,download_transcript_file_content='')
 
 @app.route('/gpt_text_workshop',methods=['GET', 'POST'])
 def gpt_text_workshop():
@@ -174,7 +179,7 @@ def gpt_text_workshop():
     else:
         global_transcript_length_dict['length'] = 0
         global_prompt_length_dict['length'] = 0
-    return render_template('gpt_text_workshop.html',transcript_length_dict=global_transcript_length_dict,prompt_length_dict=global_prompt_length_dict,transcript_files_list=global_transcript_files_list,prompt_files_list=global_prompt_files_list,prompt_download_file_status='',prompt_upload_file_status='',output_file_status='')
+    return render_template('gpt_text_workshop.html',transcript_length_dict=global_transcript_length_dict,prompt_length_dict=global_prompt_length_dict,transcript_files_list=global_transcript_files_list,prompt_files_list=global_prompt_files_list,prompt_download_file='',download_prompt_file_content='',prompt_upload_file_status='',output_file_status='')
 
 @app.route('/prompt_files', methods=['GET', 'POST'])
 def prompt_files():
@@ -188,15 +193,14 @@ def prompt_files():
     else:
         global_transcript_length_dict['length'] = 0
         global_prompt_length_dict['length'] = 0
-    return render_template('gpt_text_workshop.html',transcript_length_dict=global_transcript_length_dict,prompt_length_dict=global_prompt_length_dict,transcript_files_list=global_transcript_files_list,prompt_files_list=global_prompt_files_list,prompt_download_file_status='',prompt_upload_file_status='',output_file_status='')
+    return render_template('gpt_text_workshop.html',transcript_length_dict=global_transcript_length_dict,prompt_length_dict=global_prompt_length_dict,transcript_files_list=global_transcript_files_list,prompt_files_list=global_prompt_files_list,prompt_download_file='',download_prompt_file_content='',prompt_upload_file_status='',output_file_status='')
 
-@app.route('/prompt_upload_download_file',methods=['POST'])
-def prompt_upload_download_file():
+@app.route('/prompt_download_file',methods=['POST'])
+def prompt_download_file():
     global global_transcript_length_dict,global_transcript_files_list,global_prompt_length_dict,global_prompt_files_list
 
     if request.method == 'POST':
         download_file_name = request.form['download_file_name']
-        uploaded_file = request.files['uploaded_file']
         global_transcript_files_list = get_transcript_files()
         global_transcript_length_dict['length'] = len(global_transcript_files_list)
         global_prompt_files_list = get_prompt_files()
@@ -208,27 +212,33 @@ def prompt_upload_download_file():
 
                 # Read the contents of the file
                 contents = file.read()
+            prompt_download_file = download_file_name.upper()
+        else:
+            prompt_download_file = ''
+            contents = ''
+    else:
+        prompt_download_file = ''
+        contents = ''
+    return render_template('gpt_text_workshop.html',transcript_length_dict=global_transcript_length_dict,prompt_length_dict=global_prompt_length_dict,transcript_files_list=global_transcript_files_list,prompt_files_list=global_prompt_files_list,prompt_download_file=prompt_download_file,download_prompt_file_content=contents,prompt_upload_file_status='',output_file_status='')
 
-            path_to_download_folder = str(os.path.join(Path.home(), "Downloads",download_file_name))
-            with open(path_to_download_folder, "w") as file:
+@app.route('/prompt_upload_file',methods=['POST'])
+def prompt_upload_file():
+    global global_transcript_length_dict,global_transcript_files_list,global_prompt_length_dict,global_prompt_files_list
 
-                # Write to the file
-                file.write(contents)
-            prompt_download_file_status = f'{download_file_name.upper()} file is downloaded successsfully'
-            prompt_upload_file_status = ''
+    if request.method == 'POST':
+        uploaded_file = request.files['uploaded_file']
         if uploaded_file.filename != '':
             uploaded_file.save(f"prompts\{uploaded_file.filename}")
             global_transcript_files_list = get_transcript_files()
             global_transcript_length_dict['length'] = len(global_transcript_files_list)
             global_prompt_files_list = get_prompt_files()
             global_prompt_length_dict['length'] = len(global_prompt_files_list)
-            prompt_download_file_status = ''
-            prompt_upload_file_status = f'{uploaded_file.filename.upper()} file is uploaded successsfully'
+            prompt_upload_file_status = uploaded_file.filename.upper() + ' is uploaded successfully'
+        else:
+            prompt_upload_file_status = ''
     else:
-        prompt_download_file_status = ''
         prompt_upload_file_status = ''
-
-    return render_template('gpt_text_workshop.html',transcript_length_dict=global_transcript_length_dict,prompt_length_dict=global_prompt_length_dict,transcript_files_list=global_transcript_files_list,prompt_files_list=global_prompt_files_list,prompt_download_file_status=prompt_download_file_status,prompt_upload_file_status=prompt_upload_file_status)
+    return render_template('gpt_text_workshop.html',transcript_length_dict=global_transcript_length_dict,prompt_length_dict=global_prompt_length_dict,transcript_files_list=global_transcript_files_list,prompt_files_list=global_prompt_files_list,prompt_download_file='',download_prompt_file_content='',prompt_upload_file_status=prompt_upload_file_status,output_file_status='')
 
 @app.route('/generate_output_text_file', methods=['GET', 'POST'])
 def generate_output_text_file():
@@ -242,18 +252,18 @@ def generate_output_text_file():
         global_prompt_files_list = get_prompt_files()
         global_prompt_length_dict['length'] = len(global_prompt_files_list)
         if len(transcript_file_name) > 0 and len(prompt_file_name) > 0:
-            transcript_file_name = 'transcript_files/' + transcript_file_name
+            transcript_file_name = 'transcripts/' + transcript_file_name
             prompt_file_name = 'prompts/' + prompt_file_name
             output_file_name = generate_gpt3_output(transcript_file_name,prompt_file_name)
             if len(output_file_name)>0:
-                output_file_status = f'{output_file_name.upper()} file is generated successsfully'
+                output_file_status = output_file_name.upper() + ' is generated successfully'
             else:
                 output_file_status = ''
         else:
             output_file_status = ''
     else:
         output_file_status = ''
-    return render_template('gpt_text_workshop.html',transcript_length_dict=global_transcript_length_dict,prompt_length_dict=global_prompt_length_dict,transcript_files_list=global_transcript_files_list,prompt_files_list=global_prompt_files_list,prompt_download_file_status='',prompt_upload_file_status='',output_file_status=output_file_status)
+    return render_template('gpt_text_workshop.html',transcript_length_dict=global_transcript_length_dict,prompt_length_dict=global_prompt_length_dict,transcript_files_list=global_transcript_files_list,prompt_files_list=global_prompt_files_list,prompt_download_file='',download_prompt_file_content='',prompt_upload_file_status='',output_file_status=output_file_status)
 
 @app.route('/output_file_library',methods=['GET', 'POST'])
 def output_file_library():
@@ -264,7 +274,7 @@ def output_file_library():
         global_output_length_dict['length'] = len(global_output_files_list)
     else:
         global_output_length_dict['length'] = 0
-    return render_template('output_file_library.html',length_dict=global_output_length_dict,output_files_list=global_output_files_list,output_download_file_status='')
+    return render_template('output_file_library.html',length_dict=global_output_length_dict,output_files_list=global_output_files_list,output_download_file='')
 
 @app.route('/output_download_file',methods=['GET', 'POST'])
 def output_download_file():
@@ -277,21 +287,20 @@ def output_download_file():
         if len(download_file_name) > 0:
 
             # Open the file
-            with open(f"output/{download_file_name}", "r") as file:
+            with open(f"outputs/{download_file_name}", "r") as file:
 
                 # Read the contents of the file
                 contents = file.read()
 
-            path_to_download_folder = str(os.path.join(Path.home(), "Downloads",download_file_name))
-            with open(path_to_download_folder, "w") as file:
-
-                # Write to the file
-                file.write(contents)
-            output_download_file_status = f'{download_file_name.upper()} file is downloaded successsfully'
+            output_download_file = download_file_name.upper()
+        else:
+            output_download_file = ''
+            contents = ''
     else:
         global_output_length_dict['length'] = 0
-        output_download_file_status = ''
-    return render_template('output_file_library.html',length_dict=global_output_length_dict,output_files_list=global_output_files_list,output_download_file_status=output_download_file_status)
+        output_download_file = ''
+        contents = ''
+    return render_template('output_file_library.html',length_dict=global_output_length_dict,output_files_list=global_output_files_list,output_download_file=output_download_file,download_output_file_content=contents)
 
 
 

@@ -13,18 +13,21 @@
       crossorigin="anonymous">
    </script>
 </head>
-<body class="css-selector" onload="alertTranscriptDownloadUploadFileStatus()">
+<body class="css-selector" onload="downloadUploadTranscriptFile()">
    <br>
    <table style="width:1400px;height:650px;">
       <tr>
          <td rowspan="4" width="120px" valign="top">
             <a href="/create_transcript"><button class="button">Create Transcript</button></a>
-            <br>
-            <a href="/transcript_files"><button class="button">Transcript Files</button></a>
-            <br>
-            <a href="/gpt_text_workshop"><button class="button">GPT Text Workshop</button></a>
-            <br>
-            <a href="/output_file_library"><button class="button">Output File Library</button></a>
+            <form action="./transcript_files" method="POST">
+               <button class="button" type="submit">Transcript Files</button>
+            </form>
+            <form action="./gpt_text_workshop" method="POST">
+               <button class="button" type="submit">GPT Text Workshop</button>
+            </form>
+            <form action="./output_file_library" method="POST">
+               <button class="button" type="submit">Output File Library</button>
+            </form>
          </td>
       </tr>
       <tr>
@@ -32,13 +35,8 @@
             <center>
                <table>
                   <tr>
-                     <td>
+                     <td colspan="2">
                         <center>
-                        <form action="./transcript_files" method="POST">
-                           <br>
-                           <div class="loader" id="loader_id" style="display:none;"></div>
-                           <br>
-                           <button class="button" type="submit" onclick="showLoader()">Show Transcript Files</button>
                            <select id="dropdown_transcript_files_id" name="dropdown_transcript_files">
                               {% if length_dict['length'] != 0 %}
                               {% for transcript_file in transcript_files_list %}
@@ -46,26 +44,34 @@
                               {% endfor %}
                               {% endif %}
                            </select>
-                        </form>
                      </center>
                      </td>
                   </tr>
                   <tr>
+                     <td style="text-align:right;">
+                        <form action="./transcript_download_file" method="POST" onsubmit="saveFileName()">
+                           <input type="text" name="download_file_name" id="download_file_name_id" style="display:none;" value="{{transcript_download_file}}">
+                           <button class="button" type="submit" onclick="assignTrasnscriptDownloadFileName()">Download File</button>
+                        </form>
+                        <input type="text" name="transcript_file_content" id="transcript_file_content_id" style="display:none;" value="{{download_transcript_file_content}}">
+                     </td>
                      <td>
+                        <form action="./transcript_upload_file" method="POST" enctype="multipart/form-data">
+                           <input type="file" name="uploaded_file" id="uploaded_file_id" accept=".txt" style="display:none;">
+                           <label class="button" for="uploaded_file_id">Choose File</label>
+                           &nbsp;&nbsp;&nbsp;
+                           <button class="button" type="submit">Upload File</button>
+                        </form>
+                     </td>
+                  </tr>
+                  <tr>
+                     <td colspan="2">
                         <center>
-                           <form action="./transcript_upload_download_file" method="POST" enctype="multipart/form-data">
-                              <input type="text" name="download_file_name" id="download_file_name_id" style="display:none;">
-                              <button class="button" type="submit" onclick="assignTrasnscriptDownloadFileName()">Download File</button>
-                              <input type="file" name="uploaded_file" id="uploaded_file_id" accept=".txt" style="display:none;">
-                              <label class="button" for="uploaded_file_id">Choose File</label>
-                              <button class="button" type="submit">Upload File</button>
-                           </form>
+                           <label id="transcript_upload_file_status_id">{{transcript_upload_file_status}}</label>
                         </center>
                      </td>
                   </tr>
                </table>
-               <label id="transcript_download_file_status_id" style="display:none;">{{transcript_download_file_status}}</label>
-               <label id="transcript_upload_file_status_id" style="display:none;">{{transcript_upload_file_status}}</label>
             </center>
          </td>
       </tr>

@@ -13,18 +13,21 @@
       crossorigin="anonymous">
    </script>
 </head>
-<body class="css-selector" onload="alertOutputDownloadFileStatus()">
+<body class="css-selector" onload="downloadOutputFile()">
    <br>
    <table style="width:1400px;height:650px;">
       <tr>
          <td rowspan="4" width="120px" valign="top">
             <a href="/create_transcript"><button class="button">Create Transcript</button></a>
-            <br>
-            <a href="/transcript_files"><button class="button">Transcript Files</button></a>
-            <br>
-            <a href="/gpt_text_workshop"><button class="button">GPT Text Workshop</button></a>
-            <br>
-            <a href="/output_file_library"><button class="button">Output File Library</button></a>
+            <form action="./transcript_files" method="POST">
+               <button class="button" type="submit">Transcript Files</button>
+            </form>
+            <form action="./gpt_text_workshop" method="POST">
+               <button class="button" type="submit">GPT Text Workshop</button>
+            </form>
+            <form action="./output_file_library" method="POST">
+               <button class="button" type="submit">Output File Library</button>
+            </form>
          </td>
       </tr>
       <tr>
@@ -34,11 +37,6 @@
                   <tr>
                      <td>
                         <center>
-                        <form action="./output_file_library" method="POST">
-                           <br>
-                           <div class="loader" id="loader_id" style="display:none;"></div>
-                           <br>
-                           <button class="button" type="submit" onclick="showLoader()">Show Output Files</button>
                            <select id="dropdown_output_files_id" name="dropdown_output_files">
                               {% if length_dict['length'] != 0 %}
                               {% for output_file in output_files_list %}
@@ -46,22 +44,21 @@
                               {% endfor %}
                               {% endif %}
                            </select>
-                        </form>
                      </center>
                      </td>
                   </tr>
                   <tr>
                      <td>
                         <center>
-                           <form action="./output_download_file" method="POST">
-                              <input type="text" name="download_file_name" id="download_file_name_id" style="display:none;">
+                           <form action="./output_download_file" method="POST" onsubmit="saveFileName()">
+                              <input type="text" name="download_file_name" id="download_file_name_id" style="display:none;" value="{{output_download_file}}">
                               <button class="button" type="submit" onclick="assignOutputDownloadFileName()">Download File</button>
                            </form>
+                           <input type="text" name="output_file_content" id="output_file_content_id" style="display:none;" value="{{download_output_file_content}}">
                         </center>
                      </td>
                   </tr>
                </table>
-               <label id="output_download_file_status_id" style="display:none;">{{output_download_file_status}}</label>
             </center>
          </td>
       </tr>
