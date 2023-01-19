@@ -11,7 +11,6 @@ from pathlib import Path
 import torch
 
 ssl._create_default_https_context = ssl._create_unverified_context
-
 app = Flask(__name__,template_folder='template')
 
 # create folders if not exists
@@ -21,6 +20,8 @@ if not os.path.exists('prompts'):
     os.mkdir('prompts')
 if not os.path.exists('outputs'):
     os.mkdir('outputs')
+
+
 
 def get_generated_text(prompt,engine='text-davinci-003',temp=0.3,tokens=2000,top_p=1,freq_penalty=0,pres_penalty=0,stop=['asdfasdf','asdasdf']):
     result =False
@@ -67,15 +68,15 @@ def generate_gpt3_output(transcript_file,prompt_file):
 
 # get list of files in transcript files
 def get_transcript_files():
-    return [file.split('\\')[-1] for file in glob.glob('transcripts/*.txt')]
+    return [file.split('/')[-1] for file in glob.glob('transcripts/*.txt')]
 
 # get list of files in prompts files
 def get_prompt_files():
-    return [file.split('\\')[-1] for file in glob.glob('prompts/*.txt')]
+    return [file.split('/')[-1] for file in glob.glob('prompts/*.txt')]
 
 # get list of files in output files
 def get_output_files():
-    return [file.split('\\')[-1] for file in glob.glob('outputs/*.txt')]
+    return [file.split('/')[-1] for file in glob.glob('outputs/*.txt')]
 
 @app.route('/')
 def index():
@@ -100,16 +101,17 @@ def create_transcript():
         base, ext = os.path.splitext(out_file)
         new_file = base + '.mp3'
         os.rename(out_file, new_file)
-
         # transcribe the audio file
         model = whisper.load_model("base.en")
+        print('model loaded')
         result = model.transcribe(new_file)
+        print('result',result["text"])
         with open(new_file.replace('mp3','txt'), "w+") as f:
             f.write(result["text"])
-            
         # remove mp3 file
         os.remove(new_file)
         transcript_file_status = 'File saved in this location : \n'+new_file.replace('mp3','txt')
+        print(transcript_file_status)
         return render_template('create_transcript.html',youtube_link=link,transcript_file_status=transcript_file_status)
     else:
         link = ''
@@ -135,10 +137,8 @@ def transcript_download_file():
         global_transcript_files_list = get_transcript_files()
         global_transcript_length_dict['length'] = len(global_transcript_files_list)
         if len(download_file_name) > 0:
-
             # Open the file
-            with open(f"transcripts/{download_file_name}", "r") as file:
-
+            with open(f"{os.getcwd()}/transcripts/{download_file_name}", "r") as file:
                 # Read the contents of the file
                 contents = file.read()
             transcript_download_file = download_file_name.upper()
@@ -157,7 +157,7 @@ def transcript_upload_file():
     if request.method == 'POST':
         uploaded_file = request.files['uploaded_file']
         if uploaded_file.filename != '':
-            uploaded_file.save(f"transcripts\{uploaded_file.filename}")
+            uploaded_file.save(f"{os.getcwd()}/transcripts/{uploaded_file.filename}")
             global_transcript_files_list = get_transcript_files()
             global_transcript_length_dict['length'] = len(global_transcript_files_list)
             transcript_upload_file_status = uploaded_file.filename.upper() + ' is uploaded successfully'
@@ -208,7 +208,7 @@ def prompt_download_file():
         if len(download_file_name) > 0:
 
             # Open the file
-            with open(f"prompts/{download_file_name}", "r") as file:
+            with open(f"{os.getcwd()}/prompts/{download_file_name}", "r") as file:
 
                 # Read the contents of the file
                 contents = file.read()
@@ -228,7 +228,7 @@ def prompt_upload_file():
     if request.method == 'POST':
         uploaded_file = request.files['uploaded_file']
         if uploaded_file.filename != '':
-            uploaded_file.save(f"prompts\{uploaded_file.filename}")
+            uploaded_file.save(f"{os.getcwd()}/prompts/{uploaded_file.filename}")
             global_transcript_files_list = get_transcript_files()
             global_transcript_length_dict['length'] = len(global_transcript_files_list)
             global_prompt_files_list = get_prompt_files()
@@ -287,7 +287,7 @@ def output_download_file():
         if len(download_file_name) > 0:
 
             # Open the file
-            with open(f"outputs/{download_file_name}", "r") as file:
+            with open(f"{os.getcwd()}/outputs/{download_file_name}", "r") as file:
 
                 # Read the contents of the file
                 contents = file.read()
@@ -302,13 +302,15 @@ def output_download_file():
         contents = ''
     return render_template('output_file_library.html',length_dict=global_output_length_dict,output_files_list=global_output_files_list,output_download_file=output_download_file,download_output_file_content=contents)
 
-
+global_transcript_length_dict = {}
+global_transcript_files_list = []
+global_prompt_length_dict = {}
+global_prompt_files_list = []
+global_output_length_dict = {}
+global_output_files_list = []
 
 if __name__ == '__main__': 
-    global_transcript_length_dict = {}
-    global_transcript_files_list = []
-    global_prompt_length_dict = {}
-    global_prompt_files_list = []
-    global_output_length_dict = {}
-    global_output_files_list = []
-    app.run(host='128.199.24.112', port=8080, debug=True)
+    
+    app.run(host='159.65.159.245', port=8080, debug=True)
+
+# gunicorn -b 159.65.159.245:8080 main:app --timeout 600
