@@ -56,11 +56,9 @@
                         <input type="text" name="transcript_file_content" id="transcript_file_content_id" style="display:none;" value="{{download_transcript_file_content}}">
                      </td>
                      <td>
-                        <form action="./transcript_upload_file" method="POST" enctype="multipart/form-data">
+                        <form action="./transcript_upload_file" id="transcript_upload_file_id" method="POST" enctype="multipart/form-data">
                            <input type="file" name="uploaded_file" id="uploaded_file_id" accept=".txt" style="display:none;">
-                           <label class="button" for="uploaded_file_id">Choose File</label>
-                           &nbsp;&nbsp;&nbsp;
-                           <button class="button" type="submit">Upload File</button>
+                           <label class="button" for="uploaded_file_id">Upload File</label>
                         </form>
                      </td>
                   </tr>
@@ -77,5 +75,10 @@
       </tr>
    </table>
    <script src="../static/js/index.js"></script>
+   <script>
+      document.getElementById("uploaded_file_id").onchange = function() {
+         document.getElementById("transcript_upload_file_id").submit();
+      };
+   </script>
 </body>
 </html>
