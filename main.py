@@ -21,8 +21,6 @@ if not os.path.exists('prompts'):
 if not os.path.exists('outputs'):
     os.mkdir('outputs')
 
-
-
 def get_generated_text(prompt,engine='text-davinci-003',temp=0.3,tokens=2000,top_p=1,freq_penalty=0,pres_penalty=0,stop=['asdfasdf','asdasdf']):
     result =False
     while result!=True:
@@ -62,9 +60,9 @@ def generate_gpt3_output(transcript_file,prompt_file):
     result = '\n\n'.join(output)
 
     # save result in new file in output
-    with open('outputs/'+transcript_file.split('/')[-1],'w') as f:
+    with open('outputs/'+transcript_file.split('/')[-1].split('.')[0]+'_'+prompt_file.split('/')[-1].split('.')[0]+'.txt','w+') as f:
         f.write(result)
-    return transcript_file.split('/')[-1]
+    return transcript_file.split('/')[-1].split('.')[0]+'_'+prompt_file.split('/')[-1].split('.')[0]+'.txt'
 
 # get list of files in transcript files
 def get_transcript_files():
